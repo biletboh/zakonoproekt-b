@@ -9,7 +9,7 @@ class BaseModel(models.Model):
 
     created = models.DateTimeField('Створено', default=timezone.now)
     modified = AutoLastModifiedField('Змінено')
-    slug = models.SlugField('Посилання', unique=True)
+    slug = models.SlugField('Посилання', unique=True, max_length=512)
 
     class Meta:
         abstract = True

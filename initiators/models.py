@@ -3,6 +3,7 @@ from core.models import BaseModel
 
 from model_utils import Choices
 from easy_thumbnails.fields import ThumbnailerImageField
+from transliterate import slugify
 
 
 def photo_upload_to(instance, filename):
@@ -26,7 +27,7 @@ class Initiator(BaseModel):
     information = models.CharField('Інформація', max_length=512, blank=True)
     email = models.EmailField('Емейл', max_length=90, blank=True)
     phone = models.CharField('Телефон', max_length=90, blank=True)
-    photo_manual = ThumbnailerImageField(upload_to=photo_upload_to, blank=True)
+    photo = ThumbnailerImageField(upload_to=photo_upload_to, blank=True)
 
     class Meta:
         verbose_name_plural = 'initiators'
