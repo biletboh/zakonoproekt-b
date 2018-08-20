@@ -6,7 +6,7 @@ from django.core.files import File
 from bills.models import Bill, Passing, Document, AgendaQuestion, WorkOuts
 from committees.models import Committee
 from committees.tests.test_models import CommitteeDataMixin
-from initiators.models import Initiator
+# from initiators.models import Initiator
 from initiators.tests.test_models import InitiatorDataMixin
 
 
@@ -27,6 +27,7 @@ class BillDataMixin(InitiatorDataMixin):
             'rubric': 'Двосторонні міжнародні угоди',
             'subject': 'Народний депутат України',
             'registration_date': '2014-12-01',
+            'committee_date_passed': '2014-12-01',
             'bill_type': 'Проект Закону',
             'phase_date': '2016-02-18',
             'phase': 'Відхилено та знято з розгляду',
@@ -38,29 +39,8 @@ class BillDataMixin(InitiatorDataMixin):
         }
 
 
-class BillModelTestCase(BillDataMixin, InitiatorDataMixin, TestCase):
-    """Test the Bill model."""
-
-    def test_can_create(self):
-        """Test if the model can create a object."""
-
-        old_count = Bill.objects.count()
-        bill = Bill.objects.create(**self.bill_data)
-        initiator = Initiator.objects.create(**self.initiator_data)
-        bill.authors.add(initiator)
-        bill.save()
-        new_count = Bill.objects.count()
-        self.assertNotEqual(old_count, new_count)
-
-    def test_str(self):
-        """Test a string representation of the model."""
-
-        test_object = Bill.objects.create(**self.bill_data)
-        self.assertEqual(str(test_object), self.bill_data['title'])
-
-
-class PassingModelTestCase(TestCase):
-    """Test the Passing model."""
+class PassingDataMixin:
+    """Mixin that adds Passing data."""
 
     def setUp(self):
         self.passing_data = {
@@ -68,27 +48,11 @@ class PassingModelTestCase(TestCase):
             'date': '2016-02-03'
         }
 
-    def test_can_create(self):
-        """Test if the model can create a object."""
 
-        old_count = Passing.objects.count()
-        Passing.objects.create(**self.passing_data)
-        new_count = Passing.objects.count()
-        self.assertNotEqual(old_count, new_count)
-
-    def test_str(self):
-        """Test a string representation of the model."""
-
-        test_object = Passing.objects.create(**self.passing_data)
-        self.assertEqual(str(test_object), self.passing_data['title'])
-
-
-class DocumentModelTestCase(BillDataMixin, TestCase):
-    """Test the Document model."""
+class DocumentDataMixin:
+    """Mixin that adds Document data."""
 
     def setUp(self):
-        super().setUp()
-        bill = Bill.objects.create(**self.bill_data)
         mock_file = MagicMock(spec=File, name='FileMock.txt')
         mock_file.name = 'test.txt'
         self.document_data = {
@@ -96,29 +60,11 @@ class DocumentModelTestCase(BillDataMixin, TestCase):
             'date': '2016-02-03',
             'uri': 'http://w1.c1.rada.gov.ua/pls/zweb2/webproc34?id=&pf3511',
             'document_file': mock_file,
-            'bill': bill
         }
 
-    def test_can_create(self):
-        """Test if the model can create a object."""
 
-        old_count = Document.objects.count()
-        Document.objects.create(**self.document_data)
-        new_count = Document.objects.count()
-        self.assertNotEqual(old_count, new_count)
-
-    def test_str(self):
-        """Test a string representation of the model."""
-
-        test_object = Document.objects.create(**self.document_data)
-        test_repr = (self.document_data['document_type']
-                     + ' ' + self.bill_data['title'])
-        self.assertEqual(
-            str(test_object), test_repr)
-
-
-class AgendaQuestionModelTestCase(BillDataMixin, TestCase):
-    """Test the AgendaQuestion model."""
+class AgendaDataMixin(BillDataMixin):
+    """Mixin that adds AgendaQuestion data."""
 
     def setUp(self):
         super().setUp()
@@ -140,6 +86,124 @@ class AgendaQuestionModelTestCase(BillDataMixin, TestCase):
             'total': 423
         }
 
+
+class WorkOutsDataMixin:
+    """Mixin that adds WorkOuts data."""
+
+    def setUp(self):
+        self.workouts_data = {
+            'title': ('Комітет Верховної Ради України з питань податкової та '
+                      + 'митної політики'),
+            'date_got': '2014-12-11',
+            'date_passed': '2014-12-08',
+        }
+
+
+class BillModelTestCase(BillDataMixin, InitiatorDataMixin, TestCase):
+    """Test the Bill model."""
+
+    def setUp(self):
+        BillDataMixin.setUp(self)
+        InitiatorDataMixin.setUp(self)
+
+    def test_can_create(self):
+        """Test if the model can create a object."""
+
+        old_count = Bill.objects.count()
+        bill = Bill.objects.create(**self.bill_data)
+        # initiator = Initiator.objects.create(**self.initiator_data)
+        # bill.authors.add(initiator)
+        # bill.save()
+        new_count = Bill.objects.count()
+        self.assertNotEqual(old_count, new_count)
+
+    def test_str(self):
+        """Test a string representation of the model."""
+
+        test_object = Bill.objects.create(**self.bill_data)
+        self.assertEqual(str(test_object), self.bill_data['title'])
+
+
+class BillModelManagerTestCase(PassingDataMixin, DocumentDataMixin,
+                               BillDataMixin, WorkOutsDataMixin, TestCase):
+    """Test the Bill model."""
+
+    def setUp(self):
+        PassingDataMixin.setUp(self)
+        DocumentDataMixin.setUp(self)
+        WorkOutsDataMixin.setUp(self)
+        BillDataMixin.setUp(self)
+
+    def test_on_create_add_passings(self):
+        """Test if the manger can create related chronology objects."""
+
+        bill = Bill.objects.create(chronology=[self.passing_data],
+                                   **self.bill_data)
+        self.assertEqual(bill.chronology.count(), 1)
+
+    def test_on_create_add_documents(self):
+        """Test if the manger can create related document objects."""
+
+        bill = Bill.objects.create(documents=[self.document_data],
+                                   **self.bill_data)
+        self.assertEqual(bill.documents.count(), 1)
+
+    def test_on_create_add_committies(self):
+        """Test if the manger can create related committee objects."""
+
+        bill = Bill.objects.create(committees=[self.workouts_data],
+                                   **self.bill_data)
+        self.assertEqual(bill.committees.count(), 1)
+
+
+class PassingModelTestCase(PassingDataMixin, TestCase):
+    """Test the Passing model."""
+
+    def test_can_create(self):
+        """Test if the model can create a object."""
+
+        old_count = Passing.objects.count()
+        Passing.objects.create(**self.passing_data)
+        new_count = Passing.objects.count()
+        self.assertNotEqual(old_count, new_count)
+
+    def test_str(self):
+        """Test a string representation of the model."""
+
+        test_object = Passing.objects.create(**self.passing_data)
+        self.assertEqual(str(test_object), self.passing_data['title'])
+
+
+class DocumentModelTestCase(DocumentDataMixin, BillDataMixin, TestCase):
+    """Test the Document model."""
+
+    def setUp(self):
+        DocumentDataMixin.setUp(self)
+        BillDataMixin.setUp(self)
+        bill = Bill.objects.create(**self.bill_data)
+        self.document_data['bill'] = bill
+
+    def test_can_create(self):
+        """Test if the model can create a object."""
+
+        old_count = Document.objects.count()
+        Document.objects.create(**self.document_data)
+        new_count = Document.objects.count()
+        self.assertNotEqual(old_count, new_count)
+
+    def test_str(self):
+        """Test a string representation of the model."""
+
+        test_object = Document.objects.create(**self.document_data)
+        test_repr = (self.document_data['document_type']
+                     + ' ' + self.bill_data['title'])
+        self.assertEqual(
+            str(test_object), test_repr)
+
+
+class AgendaQuestionModelTestCase(AgendaDataMixin, TestCase):
+    """Test the AgendaQuestion model."""
+
     def test_can_create(self):
         """Test if the model can create a object."""
 
@@ -159,22 +223,17 @@ class AgendaQuestionModelTestCase(BillDataMixin, TestCase):
             str(test_object), self.agenda_data['title'])
 
 
-class WorkOutsModelTestCase(BillDataMixin, CommitteeDataMixin, TestCase):
+class WorkOutsModelTestCase(BillDataMixin, TestCase):
     """Test the WorkOuts model."""
 
     def setUp(self):
         BillDataMixin.setUp(self)
         CommitteeDataMixin.setUp(self)
+        WorkOutsDataMixin.setUp(self)
         bill = Bill.objects.create(**self.bill_data)
         committee = Committee.objects.create(**self.committee_data)
-        self.workouts_data = {
-            'title': ('Комітет Верховної Ради України з питань податкової та '
-                      + 'митної політики'),
-            'date_got': '2014-12-11',
-            'date_passed': '2014-12-08',
-            'bill': bill,
-            'committee': committee
-        }
+        self.workouts_data['bill'] = bill
+        self.workouts_data['committee'] = committee
 
     def test_can_create(self):
         """Test if the model can create a object."""

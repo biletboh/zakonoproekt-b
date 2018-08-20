@@ -3,6 +3,7 @@ from django.db import models
 from transliterate import slugify
 from model_utils import Choices
 
+from bills.managers import BillManager
 from core.models import BaseModel
 from committees.models import Committee
 from initiators.models import Initiator
@@ -32,8 +33,7 @@ class Bill(BaseModel):
 
     title = models.CharField('Заголовок', max_length=512)
     rada_id = models.PositiveIntegerField('ID у ВР')
-    uri = models.URLField('Посилання', null=True,
-                          blank=True)
+    uri = models.URLField('Посилання', null=True, blank=True)
     number = models.PositiveIntegerField('Реєстраційний номер')
     convocation = models.PositiveSmallIntegerField(
         choices=CONVOCATION, default=CONVOCATION.VIII)
@@ -52,19 +52,26 @@ class Bill(BaseModel):
     committee_date_passed = models.DateField('Дата направлення на комітети',
                                              null=True, blank=True)
 
-    bind_bills = models.ManyToManyField('self', symmetrical=True)
-    alternatives = models.ManyToManyField('self', symmetrical=True)
+    bind_bills = models.ManyToManyField('self', symmetrical=True, blank=True)
+    alternatives = models.ManyToManyField('self', symmetrical=True, blank=True)
 
-    authors = models.ManyToManyField(Initiator, related_name='authored')
-    executives = models.ManyToManyField(Initiator,
-                                        related_name='bills_to_execute')
+    authors = models.ManyToManyField(Initiator, related_name='authored',
+                                     blank=True)
+    initiators = models.ManyToManyField(
+        Initiator, related_name='initiated', blank=True)
+    executives = models.ManyToManyField(
+        Initiator, related_name='bills_to_execute', blank=True)
     main_executives = models.ManyToManyField(
-        Initiator, related_name='main_bills_to_execute')
+        Initiator, related_name='main_bills_to_execute', blank=True)
 
-    chronology = models.ManyToManyField(Passing, related_name='bills')
+    chronology = models.ManyToManyField(Passing, related_name='bills',
+                                        blank=True)
 
     committees = models.ManyToManyField(Committee, through='WorkOuts',
-                                        related_name='bills')
+                                        related_name='bills', blank=True)
+
+    objects = models.Manager()
+    objects = BillManager()
 
     class Meta:
         verbose_name_plural = 'bills'

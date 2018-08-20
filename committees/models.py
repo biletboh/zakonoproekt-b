@@ -9,8 +9,8 @@ class Committee(BaseModel):
     """Store data about committees."""
 
     title = models.CharField('Заголовок', max_length=200)
-    head = models.CharField('Заголовок', max_length=200, blank=True)
-    description = models.CharField('Заголовок', max_length=512, blank=True)
+    head = models.CharField('Голова', max_length=200, blank=True)
+    description = models.CharField('Опис', max_length=512, blank=True)
     number = models.PositiveSmallIntegerField('Кількісний склад',
                                               null=True, blank=True)
     website = models.CharField('Вебсайт', max_length=100, blank=True)
