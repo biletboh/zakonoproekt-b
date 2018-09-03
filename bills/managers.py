@@ -10,7 +10,8 @@ class BillManager(models.Manager):
                subject, bill_type, phase, phase_date, uri='',
                registration_date=None, agenda_uri='', agenda_number=None,
                agenda_last_date=None, committee_date_passed=None,
-               chronology=[], documents=[], committees=[],
+               chronology=[], documents=[], committees=[], authors=[],
+               initiators=[], executives=[], main_executives=[],
                **kwargs):
         """Save related models on create."""
 
@@ -24,9 +25,45 @@ class BillManager(models.Manager):
                     agenda_number=agenda_number,
                     committee_date_passed=committee_date_passed)
         bill.save()
+        bill = self.add_authors(bill, authors)
+        bill = self.add_initiators(bill, initiators)
+        bill = self.add_executives(bill, executives)
+        bill = self.add_main_executives(bill, main_executives)
         bill = self.add_chronology(bill, chronology)
         bill = self.add_documents(bill, documents)
         bill = self.add_committees(bill, committees)
+        return bill
+
+    def add_authors(self, bill, authors):
+        """Add authors to bill object."""
+
+        if authors:
+            bill.authors.add(*authors)
+            bill.save()
+        return bill
+
+    def add_initiators(self, bill, initiators):
+        """Add initiators to bill object."""
+
+        if initiators:
+            bill.initiators.add(*initiators)
+            bill.save()
+        return bill
+
+    def add_executives(self, bill, executives):
+        """Add executives to bill object."""
+
+        if executives:
+            bill.executives.add(*executives)
+            bill.save()
+        return bill
+
+    def add_main_executives(self, bill, main_executives):
+        """Add main executives to bill object."""
+
+        if main_executives:
+            bill.main_executives.add(*main_executives)
+            bill.save()
         return bill
 
     def add_chronology(self, bill, chronology):

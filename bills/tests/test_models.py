@@ -6,7 +6,7 @@ from django.core.files import File
 from bills.models import Bill, Passing, Document, AgendaQuestion, WorkOuts
 from committees.models import Committee
 from committees.tests.test_models import CommitteeDataMixin
-# from initiators.models import Initiator
+from initiators.models import Initiator
 from initiators.tests.test_models import InitiatorDataMixin
 
 
@@ -105,15 +105,23 @@ class BillModelTestCase(BillDataMixin, InitiatorDataMixin, TestCase):
     def setUp(self):
         BillDataMixin.setUp(self)
         InitiatorDataMixin.setUp(self)
+        DocumentDataMixin.setUp(self)
+        CommitteeDataMixin.setUp(self)
+        WorkOutsDataMixin.setUp(self)
+        Committee.objects.create(**self.committee_data)
+        initiator = Initiator.objects.create(**self.initiator_data)
+        self.bill_data['authors'] = [initiator]
+        self.bill_data['initiators'] = [initiator]
+        self.bill_data['executives'] = [initiator]
+        self.bill_data['main_executives'] = [initiator]
+        self.bill_data['documents'] = [self.document_data]
+        self.bill_data['committees'] = [self.workouts_data]
 
     def test_can_create(self):
         """Test if the model can create a object."""
 
         old_count = Bill.objects.count()
-        bill = Bill.objects.create(**self.bill_data)
-        # initiator = Initiator.objects.create(**self.initiator_data)
-        # bill.authors.add(initiator)
-        # bill.save()
+        Bill.objects.create(**self.bill_data)
         new_count = Bill.objects.count()
         self.assertNotEqual(old_count, new_count)
 
@@ -132,7 +140,16 @@ class BillModelManagerTestCase(PassingDataMixin, DocumentDataMixin,
         PassingDataMixin.setUp(self)
         DocumentDataMixin.setUp(self)
         WorkOutsDataMixin.setUp(self)
+        CommitteeDataMixin.setUp(self)
         BillDataMixin.setUp(self)
+        Committee.objects.create(**self.committee_data)
+        initiator = Initiator.objects.create(**self.initiator_data)
+        self.bill_data['authors'] = [initiator]
+        self.bill_data['initiators'] = [initiator]
+        self.bill_data['executives'] = [initiator]
+        self.bill_data['main_executives'] = [initiator]
+        self.bill_data['documents'] = [self.document_data]
+        self.bill_data['committees'] = [self.workouts_data]
 
     def test_on_create_add_passings(self):
         """Test if the manger can create related chronology objects."""
@@ -144,16 +161,24 @@ class BillModelManagerTestCase(PassingDataMixin, DocumentDataMixin,
     def test_on_create_add_documents(self):
         """Test if the manger can create related document objects."""
 
-        bill = Bill.objects.create(documents=[self.document_data],
-                                   **self.bill_data)
+        bill = Bill.objects.create(**self.bill_data)
         self.assertEqual(bill.documents.count(), 1)
 
     def test_on_create_add_committies(self):
         """Test if the manger can create related committee objects."""
 
-        bill = Bill.objects.create(committees=[self.workouts_data],
-                                   **self.bill_data)
+        bill = Bill.objects.create(**self.bill_data)
         self.assertEqual(bill.committees.count(), 1)
+
+    def test_related_initiators(self):
+        """Test if a bill has authors, initiators, executives,
+            and main_executives."""
+
+        bill = Bill.objects.create(**self.bill_data)
+        self.assertEqual(bill.authors.count(), 1)
+        self.assertEqual(bill.initiators.count(), 1)
+        self.assertEqual(bill.executives.count(), 1)
+        self.assertEqual(bill.main_executives.count(), 1)
 
 
 class PassingModelTestCase(PassingDataMixin, TestCase):
