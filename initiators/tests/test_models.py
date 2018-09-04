@@ -19,6 +19,7 @@ class InitiatorDataMixin(BaseTestDataMixin):
             'middle_name': 'Тестович',
             'convocation': 8,
             'party': 'Безпартійний',
+            'rada_id': 18003,
             'faction': 'Позафракційний',
             'information': 'Інформація',
             'email': 'someemail@test.com',

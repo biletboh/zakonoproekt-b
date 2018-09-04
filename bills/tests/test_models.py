@@ -6,7 +6,6 @@ from django.core.files import File
 from bills.models import Bill, Passing, Document, AgendaQuestion, WorkOuts
 from committees.models import Committee
 from committees.tests.test_models import CommitteeDataMixin
-from initiators.models import Initiator
 from initiators.tests.test_models import InitiatorDataMixin
 
 
@@ -53,13 +52,10 @@ class DocumentDataMixin:
     """Mixin that adds Document data."""
 
     def setUp(self):
-        mock_file = MagicMock(spec=File, name='FileMock.txt')
-        mock_file.name = 'test.txt'
         self.document_data = {
             'document_type': 'Проект Закону',
             'date': '2016-02-03',
             'uri': 'http://w1.c1.rada.gov.ua/pls/zweb2/webproc34?id=&pf3511',
-            'document_file': mock_file,
         }
 
 
@@ -109,11 +105,10 @@ class BillModelTestCase(BillDataMixin, InitiatorDataMixin, TestCase):
         CommitteeDataMixin.setUp(self)
         WorkOutsDataMixin.setUp(self)
         Committee.objects.create(**self.committee_data)
-        initiator = Initiator.objects.create(**self.initiator_data)
-        self.bill_data['authors'] = [initiator]
-        self.bill_data['initiators'] = [initiator]
-        self.bill_data['executives'] = [initiator]
-        self.bill_data['main_executives'] = [initiator]
+        self.bill_data['authors'] = [self.initiator_data]
+        self.bill_data['initiators'] = [self.initiator_data]
+        self.bill_data['executives'] = [self.initiator_data]
+        self.bill_data['main_executives'] = [self.initiator_data]
         self.bill_data['documents'] = [self.document_data]
         self.bill_data['committees'] = [self.workouts_data]
 
@@ -143,41 +138,54 @@ class BillModelManagerTestCase(PassingDataMixin, DocumentDataMixin,
         CommitteeDataMixin.setUp(self)
         BillDataMixin.setUp(self)
         Committee.objects.create(**self.committee_data)
-        initiator = Initiator.objects.create(**self.initiator_data)
-        self.bill_data['authors'] = [initiator]
-        self.bill_data['initiators'] = [initiator]
-        self.bill_data['executives'] = [initiator]
-        self.bill_data['main_executives'] = [initiator]
+        self.bill_data['authors'] = [self.initiator_data]
+        self.bill_data['initiators'] = [self.initiator_data]
+        self.bill_data['executives'] = [self.initiator_data]
+        self.bill_data['main_executives'] = [self.initiator_data]
         self.bill_data['documents'] = [self.document_data]
         self.bill_data['committees'] = [self.workouts_data]
 
     def test_on_create_add_passings(self):
-        """Test if the manger can create related chronology objects."""
+        """Test if the manger can add related chronology objects."""
 
         bill = Bill.objects.create(chronology=[self.passing_data],
                                    **self.bill_data)
         self.assertEqual(bill.chronology.count(), 1)
 
     def test_on_create_add_documents(self):
-        """Test if the manger can create related document objects."""
+        """Test if the manger can add related document objects."""
 
         bill = Bill.objects.create(**self.bill_data)
         self.assertEqual(bill.documents.count(), 1)
 
     def test_on_create_add_committies(self):
-        """Test if the manger can create related committee objects."""
+        """Test if the manger can add related committee objects."""
 
         bill = Bill.objects.create(**self.bill_data)
         self.assertEqual(bill.committees.count(), 1)
 
-    def test_related_initiators(self):
-        """Test if a bill has authors, initiators, executives,
-            and main_executives."""
+    def test_on_create_add_authors(self):
+        """Test if the manger can add related author objects."""
 
         bill = Bill.objects.create(**self.bill_data)
         self.assertEqual(bill.authors.count(), 1)
+
+    def test_on_create_add_initiators(self):
+        """Test if the manger can add related initiator objects."""
+
+        bill = Bill.objects.create(**self.bill_data)
         self.assertEqual(bill.initiators.count(), 1)
+
+    def test_on_create_add_executives(self):
+        """Test if the manger can add related executives objects."""
+
+        bill = Bill.objects.create(**self.bill_data)
         self.assertEqual(bill.executives.count(), 1)
+
+    def test_on_create_add_main_executives(self):
+        """Test if the manger can add related main executives objects."""
+
+        bill = Bill.objects.create(**self.bill_data)
         self.assertEqual(bill.main_executives.count(), 1)
 
 

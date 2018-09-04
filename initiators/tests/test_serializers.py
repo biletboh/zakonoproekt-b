@@ -18,5 +18,6 @@ class InitiatorSerializerTestCase(InitiatorDataMixin, TestCase):
 
         data = self.serializer.data
         keys = ['id', 'first_name', 'last_name', 'middle_name', 'convocation',
-                'party', 'faction', 'information', 'email', 'phone', 'photo']
+                'party', 'faction', 'information', 'email', 'phone', 'photo',
+                'rada_id']
         self.assertCountEqual(data.keys(), keys)

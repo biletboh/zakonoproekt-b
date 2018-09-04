@@ -28,7 +28,8 @@ class BillSerializerTestCase(BillDataMixin, TestCase):
                 'phase_date', 'registration_date', 'agenda_number',
                 'agenda_last_date', 'agenda_uri', 'committee_date_passed',
                 'bind_bills', 'alternatives', 'authors', 'executives',
-                'main_executives', 'chronology', 'committees', 'documents']
+                'main_executives', 'initiators', 'chronology', 'committees',
+                'documents']
         self.assertCountEqual(data.keys(), keys)
 
     @patch('bills.models.Bill.objects.create', MagicMock(name='create'))
@@ -76,7 +77,7 @@ class DocumentSerializerTestCase(BillDataMixin, TestCase):
         """Test serializer fields."""
 
         data = self.serializer.data
-        keys = ['id', 'bill', 'document_type', 'date', 'uri', 'document_file']
+        keys = ['id', 'document_type', 'date', 'uri', 'document_file']
         self.assertCountEqual(data.keys(), keys)
 
 
@@ -116,5 +117,5 @@ class WorkOutsSerializerTestCase(BillDataMixin, TestCase):
         """Test serializer fields."""
 
         data = self.serializer.data
-        keys = ['id', 'title', 'date_passed', 'date_got', 'bill', 'committee']
+        keys = ['id', 'title', 'date_passed', 'date_got']
         self.assertCountEqual(data.keys(), keys)

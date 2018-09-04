@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from bills.models import Bill, Passing, Document, AgendaQuestion, WorkOuts
+from initiators.serializers import InitiatorSerializer
 
 
 class PassingSerializer(serializers.ModelSerializer):
@@ -16,7 +17,7 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Document
-        fields = ('id', 'bill', 'document_type', 'date', 'uri',
+        fields = ('id', 'document_type', 'date', 'uri',
                   'document_file')
 
 
@@ -35,16 +36,19 @@ class WorkOutsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WorkOuts
-        fields = ('id', 'title', 'date_passed', 'date_got', 'bill',
-                  'committee')
+        fields = ('id', 'title', 'date_passed', 'date_got')
 
 
 class BillSerializer(serializers.ModelSerializer):
     """Serialize data for Committee."""
 
     chronology = PassingSerializer(many=True, required=False)
-    committees = WorkOutsSerializer(many=True, required=False)
+    authors = InitiatorSerializer(many=True, required=False)
+    initiators = InitiatorSerializer(many=True, required=False)
+    executives = InitiatorSerializer(many=True, required=False)
+    main_executives = InitiatorSerializer(many=True, required=False)
     documents = DocumentSerializer(many=True, required=False)
+    committees = WorkOutsSerializer(many=True, required=False)
 
     class Meta:
         model = Bill
@@ -52,9 +56,33 @@ class BillSerializer(serializers.ModelSerializer):
                   'session', 'rubric', 'subject', 'bill_type', 'phase',
                   'phase_date', 'registration_date', 'agenda_number',
                   'agenda_last_date', 'agenda_uri', 'committee_date_passed',
-                  'bind_bills', 'alternatives', 'authors', 'executives',
-                  'main_executives', 'chronology', 'committees', 'documents')
+                  'bind_bills', 'alternatives', 'authors', 'initiators',
+                  'executives', 'main_executives',
+                  'chronology', 'documents', 'committees'
+                  )
 
     def create(self, validated_data):
-        bill = Bill.objects.create(validated_data)
+        bill = Bill.objects.create(
+            title=validated_data['title'], rada_id=validated_data['rada_id'],
+            number=validated_data['number'],
+            convocation=validated_data['convocation'],
+            session=validated_data['session'], rubric=validated_data['rubric'],
+            subject=validated_data['subject'],
+            bill_type=validated_data['bill_type'],
+            phase=validated_data['phase'],
+            phase_date=validated_data['phase_date'],
+            uri=validated_data['uri'],
+            registration_date=validated_data['registration_date'],
+            agenda_uri=validated_data['agenda_uri'],
+            agenda_number=validated_data['agenda_number'],
+            agenda_last_date=validated_data['agenda_last_date'],
+            committee_date_passed=validated_data['committee_date_passed'],
+            chronology=validated_data.get('chronology', []),
+            authors=validated_data.get('authors', []),
+            initiators=validated_data.get('initiators', []),
+            executives=validated_data.get('executives', []),
+            main_executives=validated_data.get('main_executives', []),
+            documents=validated_data.get('documents', []),
+            committees=validated_data.get('committees', [])
+            )
         return bill

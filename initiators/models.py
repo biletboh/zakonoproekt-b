@@ -1,3 +1,4 @@
+import random
 from django.db import models
 from core.models import BaseModel
 
@@ -22,6 +23,7 @@ class Initiator(BaseModel):
                                    blank=True)
     convocation = models.PositiveSmallIntegerField(
         choices=CONVOCATION, default=CONVOCATION.VIII)
+    rada_id = models.PositiveSmallIntegerField(unique=True)
     party = models.CharField('Партія', max_length=200, blank=True)
     faction = models.CharField('Фракція', max_length=200, blank=True)
     information = models.CharField('Інформація', max_length=512, blank=True)

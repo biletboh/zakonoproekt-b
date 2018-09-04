@@ -14,16 +14,14 @@ class Passing(BaseModel):
 
     title = models.CharField('Заголовок', max_length=200)
     date = models.DateField('Дата')
+    slug = models.SlugField('Посилання', unique=True, max_length=512,
+                            null=True)
 
     class Meta:
         verbose_name_plural = 'passings'
 
     def __str__(self):
         return self.title
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(f'{self.title} {self.id}')
-        super().save(*args, **kwargs)
 
 
 class Bill(BaseModel):
@@ -94,7 +92,8 @@ class Document(BaseModel):
     document_type = models.CharField('Тип', max_length=50)
     date = models.DateField('Дата')
     uri = models.URLField('Посилання на порядок дений', null=True, blank=True)
-    document_file = models.FileField(upload_to=bill_directory_path)
+    document_file = models.FileField(upload_to=bill_directory_path, null=True,
+                                     blank=True)
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE,
                              related_name='documents')
 

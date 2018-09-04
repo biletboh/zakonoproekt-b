@@ -1,6 +1,7 @@
 from django.db import models
 
 from committees.models import Committee
+from initiators.models import Initiator
 
 
 class BillManager(models.Manager):
@@ -38,7 +39,15 @@ class BillManager(models.Manager):
         """Add authors to bill object."""
 
         if authors:
-            bill.authors.add(*authors)
+            for author in authors:
+                rada_id = author['rada_id']
+
+                try:
+                    author = Initiator.objects.get(rada_id=rada_id)
+                except Initiator.DoesNotExist:
+                    author = Initiator.objects.create(**author)
+
+                bill.authors.add(author)
             bill.save()
         return bill
 
@@ -46,24 +55,51 @@ class BillManager(models.Manager):
         """Add initiators to bill object."""
 
         if initiators:
-            bill.initiators.add(*initiators)
+            for initiator in initiators:
+                rada_id = initiator['rada_id']
+
+                try:
+                    initiator = Initiator.objects.get(rada_id=rada_id)
+                except Initiator.DoesNotExist:
+                    initiator = Initiator.objects.create(**initiator)
+
+                bill.initiators.add(initiator)
             bill.save()
+
         return bill
 
     def add_executives(self, bill, executives):
         """Add executives to bill object."""
 
         if executives:
-            bill.executives.add(*executives)
+            for executive in executives:
+                rada_id = executive['rada_id']
+
+                try:
+                    executive = Initiator.objects.get(rada_id=rada_id)
+                except Initiator.DoesNotExist:
+                    executive = Initiator.objects.create(**executive)
+
+                bill.executives.add(executive)
             bill.save()
+
         return bill
 
     def add_main_executives(self, bill, main_executives):
         """Add main executives to bill object."""
 
         if main_executives:
-            bill.main_executives.add(*main_executives)
+            for executive in main_executives:
+                rada_id = executive['rada_id']
+
+                try:
+                    executive = Initiator.objects.get(rada_id=rada_id)
+                except Initiator.DoesNotExist:
+                    executive = Initiator.objects.create(**executive)
+
+                bill.main_executives.add(executive)
             bill.save()
+
         return bill
 
     def add_chronology(self, bill, chronology):

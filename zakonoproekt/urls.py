@@ -24,12 +24,12 @@ from bills.views import BillViewSet
 
 
 router = DefaultRouter()
-router.register(r'intiators', InitiatorViewSet, base_name='initiator')
-router.register(r'committees', CommitteeViewSet, base_name='committee')
-router.register(r'bills', BillViewSet, base_name='bill')
+router.register(r'intiators', InitiatorViewSet, base_name='initiators')
+router.register(r'committees', CommitteeViewSet, base_name='committees')
+router.register(r'bills', BillViewSet, base_name='bills')
 
 urlpatterns = router.urls
 
 # urlpatterns = [
-#     path('admin/', admin.site.urls),
+#    path('admin/', admin.site.urls),
 # ]
