@@ -57,9 +57,11 @@ class BillSerializer(serializers.ModelSerializer):
                   'phase_date', 'registration_date', 'agenda_number',
                   'agenda_last_date', 'agenda_uri', 'committee_date_passed',
                   'bind_bills', 'alternatives', 'authors', 'initiators',
-                  'executives', 'main_executives',
-                  'chronology', 'documents', 'committees'
-                  )
+                  'executives', 'main_executives', 'chronology', 'documents',
+                  'committees', 'url')
+        extra_kwargs = {
+            'url': {'view_name': 'bills-detail'}
+            }
 
     def create(self, validated_data):
         bill = Bill.objects.create(

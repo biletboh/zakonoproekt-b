@@ -1,6 +1,9 @@
 from unittest.mock import patch, MagicMock
 
 from django.test import TestCase
+from django.test.client import RequestFactory
+
+from rest_framework.reverse import reverse
 
 from bills.models import Bill, Passing, Document, AgendaQuestion, WorkOuts
 from bills.serializers import BillSerializer, PassingSerializer,\
@@ -17,7 +20,10 @@ class BillSerializerTestCase(BillDataMixin, TestCase):
     def setUp(self):
         super().setUp()
         bill = Bill.objects.create(**self.bill_data)
-        self.serializer = BillSerializer(instance=bill)
+        self.rf = RequestFactory()
+        request = self.rf.get(reverse('bills-list'))
+        self.serializer = BillSerializer(instance=bill,
+                                         context={'request': request})
 
     def test_fields(self):
         """Test serializer fields."""
@@ -29,7 +35,7 @@ class BillSerializerTestCase(BillDataMixin, TestCase):
                 'agenda_last_date', 'agenda_uri', 'committee_date_passed',
                 'bind_bills', 'alternatives', 'authors', 'executives',
                 'main_executives', 'initiators', 'chronology', 'committees',
-                'documents']
+                'documents', 'url']
         self.assertCountEqual(data.keys(), keys)
 
     @patch('bills.models.Bill.objects.create', MagicMock(name='create'))

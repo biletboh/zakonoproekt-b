@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.test.client import RequestFactory
 
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -23,7 +24,13 @@ class BillCRUDTestCase(BillDataMixin, APITestCase):
         DocumentDataMixin.setUp(self)
         CommitteeDataMixin.setUp(self)
         WorkOutsDataMixin.setUp(self)
+
+        self.rf = RequestFactory()
+
         Committee.objects.create(**self.committee_data)
+        self.user = User.objects.create_user('test', 'test@zakonoproekt.com',
+                                             'testpass10')
+
         self.initiator_data.pop('photo', None)
         self.initiator_data2 = self.initiator_data.copy()
         self.initiator_data2['last_name'] = 'Тестун'
@@ -41,8 +48,6 @@ class BillCRUDTestCase(BillDataMixin, APITestCase):
         self.bill_invalid_data = {
             'invalid': 'data'
         }
-        self.user = User.objects.create_user('test', 'test@zakonoproekt.com',
-                                             'testpass10')
 
     def test_create(self):
         """Test the Bill creation endpoint."""
@@ -65,7 +70,9 @@ class BillCRUDTestCase(BillDataMixin, APITestCase):
 
         Bill.objects.create(**self.bill_data)
         bills = Bill.objects.all()
-        serializer = BillSerializer(bills, many=True)
+        request = self.rf.get(reverse('bills-list'))
+        serializer = BillSerializer(bills, many=True,
+                                    context={'request': request})
 
         response = self.client.get(reverse('bills-list'))
         self.assertEqual(response.data, serializer.data)
@@ -75,7 +82,8 @@ class BillCRUDTestCase(BillDataMixin, APITestCase):
         """Test the Bill list endpoint."""
 
         bill = Bill.objects.create(**self.bill_data)
-        serializer = BillSerializer(bill)
+        request = self.rf.get(reverse('bills-detail', kwargs={'pk': bill.pk}))
+        serializer = BillSerializer(bill, context={'request': request})
 
         response = self.client.get(
             reverse('bills-detail', kwargs={'pk': bill.pk}))

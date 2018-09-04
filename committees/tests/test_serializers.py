@@ -1,4 +1,7 @@
 from django.test import TestCase
+from django.test.client import RequestFactory
+
+from rest_framework.reverse import reverse
 
 from committees.models import Committee
 from committees.serializers import CommitteeSerializer
@@ -11,12 +14,15 @@ class CommitteeSerializerTestCase(CommitteeDataMixin, TestCase):
     def setUp(self):
         super().setUp()
         committee = Committee.objects.create(**self.committee_data)
-        self.serializer = CommitteeSerializer(instance=committee)
+        self.rf = RequestFactory()
+        request = self.rf.get(reverse('committees-list'))
+        self.serializer = CommitteeSerializer(
+            instance=committee, context={'request': request})
 
     def test_fields(self):
         """Test serializer fields."""
 
         data = self.serializer.data
         keys = ['id', 'title', 'head', 'description', 'number', 'website',
-                'secretary', 'secretary_contacts']
+                'secretary', 'secretary_contacts', 'url']
         self.assertCountEqual(data.keys(), keys)

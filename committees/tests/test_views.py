@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.test.client import RequestFactory
 
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -19,6 +20,7 @@ class CommitteeCRUDTestCase(CommitteeDataMixin, APITestCase):
         }
         self.user = User.objects.create_user('test', 'test@zakonoproekt.com',
                                              'testpass10')
+        self.rf = RequestFactory()
 
     def test_create(self):
         """Test the Committee creation endpoint."""
@@ -41,7 +43,9 @@ class CommitteeCRUDTestCase(CommitteeDataMixin, APITestCase):
 
         Committee.objects.create(**self.committee_data)
         committees = Committee.objects.all()
-        serializer = CommitteeSerializer(committees, many=True)
+        request = self.rf.get(reverse('committees-list'))
+        serializer = CommitteeSerializer(committees, many=True,
+                                         context={'request': request})
 
         response = self.client.get(reverse('committees-list'))
         self.assertEqual(response.data, serializer.data)
@@ -51,8 +55,10 @@ class CommitteeCRUDTestCase(CommitteeDataMixin, APITestCase):
         """Test the Committee list endpoint."""
 
         committee = Committee.objects.create(**self.committee_data)
-        serializer = CommitteeSerializer(committee)
-
+        request = self.rf.get(
+            reverse('committees-detail', kwargs={'pk': committee.pk}))
+        serializer = CommitteeSerializer(committee,
+                                         context={'request': request})
         response = self.client.get(
             reverse('committees-detail', kwargs={'pk': committee.pk}))
         self.assertEqual(response.data, serializer.data)

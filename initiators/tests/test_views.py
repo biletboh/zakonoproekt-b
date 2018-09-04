@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.test.client import RequestFactory
 
 from rest_framework import status
 from rest_framework.reverse import reverse
@@ -23,6 +24,7 @@ class InitiatorCRUDTestCase(InitiatorDataMixin, APITestCase):
         }
         self.user = User.objects.create_user('test', 'test@zakonoproekt.com',
                                              'testpass10')
+        self.rf = RequestFactory()
 
     def test_create(self):
         """Test the Initiator creation endpoint."""
@@ -45,7 +47,9 @@ class InitiatorCRUDTestCase(InitiatorDataMixin, APITestCase):
 
         Initiator.objects.create(**self.initiator_data)
         initiators = Initiator.objects.all()
-        serializer = InitiatorSerializer(initiators, many=True)
+        request = self.rf.get(reverse('committees-list'))
+        serializer = InitiatorSerializer(initiators, many=True,
+                                         context={'request': request})
 
         response = self.client.get(reverse('initiators-list'))
         self.assertEqual(response.data, serializer.data)
@@ -55,7 +59,10 @@ class InitiatorCRUDTestCase(InitiatorDataMixin, APITestCase):
         """Test the Initiator list endpoint."""
 
         initiator = Initiator.objects.create(**self.initiator_data)
-        serializer = InitiatorSerializer(initiator)
+        request = self.rf.get(
+            reverse('initiators-detail', kwargs={'pk': initiator.pk}))
+        serializer = InitiatorSerializer(initiator,
+                                         context={'request': request})
 
         response = self.client.get(
             reverse('initiators-detail', kwargs={'pk': initiator.pk}))
