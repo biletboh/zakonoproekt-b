@@ -29,7 +29,11 @@ class InitiatorDataMixin(BaseTestDataMixin):
 
 
 class InitiatorModelTestCase(InitiatorDataMixin, TestCase):
-    """Test the Bill model."""
+    """Test the Initiator model."""
+
+    def setUp(self):
+        super().setUp()
+        self.photo_url = 'http://static.rada.gov.ua/dep_img8/d207_1.jpg'
 
     def test_can_create(self):
         """Test if the model can create a object."""
@@ -46,3 +50,11 @@ class InitiatorModelTestCase(InitiatorDataMixin, TestCase):
         test_repr = (self.initiator_data['first_name']
                      + ' ' + self.initiator_data['last_name'])
         self.assertEqual(str(test_object), test_repr)
+
+    def test_photo_save(self):
+        """Test if the model can save photo of an object."""
+
+        self.initiator_data.pop('photo', None)
+        i = Initiator.objects.create(**self.initiator_data)
+        i.save_photo(self.photo_url)
+        self.assertTrue(bool(i.photo))

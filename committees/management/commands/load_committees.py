@@ -1,35 +1,19 @@
 import os
-import requests
-import tablib
-import time
 import xlrd
 
 from django.core.management.base import BaseCommand, CommandError
 
 from committees.models import Committee
+from core.mixins import FileDownloadCommandMixin
 
 
-class Command(BaseCommand):
+class Command(FileDownloadCommandMixin, BaseCommand):
 
     help = 'Load committees from Rada departments xls'
 
-    def download_xls(self, url, time_count=0):
-        try:
-            r = requests.get(url, allow_redirects=True, stream=True)
-            return r
-        except requests.exceptions.ConnectionError:
-            time.sleep(1)
-            time_count += 1
-            if time_count < 10:
-                return self.download_xls(url, time_count=time_count)
-            else:
-                message = f'Takes too long to connect to {url}'
-                self.stdout.write(self.style.ERROR(message))
-                return None
-
     def handle(self, *args, **options):
         url = 'http://data.rada.gov.ua/ogd/aut/staff/departments.xls'
-        r = self.download_xls(url)
+        r = self.download_file(url)
 
         if r:
             file_name = 'committees.xls'
