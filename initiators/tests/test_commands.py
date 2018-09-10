@@ -2,10 +2,9 @@ from django.test import TestCase
 from django.core import management
 
 from initiators.models import Initiator
-from initiators.tests.test_models import InitiatorDataMixin
 
 
-class LoadDataCommandTestCase(InitiatorDataMixin, TestCase):
+class LoadDataCommandTestCase(TestCase):
     """Test the Initiator Commands."""
 
     def test_command(self):

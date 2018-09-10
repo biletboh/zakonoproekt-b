@@ -1,3 +1,4 @@
+import random
 from django.db import models
 
 from transliterate import slugify
@@ -27,14 +28,11 @@ class Passing(BaseModel):
 class Bill(BaseModel):
     """Store information about a bill."""
 
-    CONVOCATION = Choices((8, 'VIII', 'VIII скликання'))
-
     title = models.CharField('Заголовок', max_length=512)
     rada_id = models.PositiveIntegerField('ID у ВР')
     uri = models.URLField('Посилання', null=True, blank=True)
-    number = models.PositiveIntegerField('Реєстраційний номер')
-    convocation = models.PositiveSmallIntegerField(
-        choices=CONVOCATION, default=CONVOCATION.VIII)
+    number = models.CharField('Реєстраційний номер', max_length=25)
+    convocation = models.CharField('Скликання', max_length=25)
     session = models.CharField('Сесія', max_length=100)
     rubric = models.CharField('Рубрика', max_length=100)
     subject = models.CharField("Суб'єкт", max_length=100)
@@ -43,10 +41,11 @@ class Bill(BaseModel):
     phase_date = models.DateField('Дата фази')
     registration_date = models.DateField('Дата реєстрації', null=True)
     agenda_number = models.CharField('Номер порядку денного', max_length=100,
-                                     blank=True)
-    agenda_last_date = models.DateField('Дата останньго розгляду', null=True)
-    agenda_uri = models.URLField('Посилання на порядок денний', null=True,
-                                 blank=True)
+                                     null=True, blank=True)
+    agenda_last_date = models.DateField('Дата останньго розгляду',
+                                        null=True, blank=True)
+    agenda_uri = models.URLField('Посилання на порядок денний',
+                                 null=True, blank=True)
     committee_date_passed = models.DateField('Дата направлення на комітети',
                                              null=True, blank=True)
 
@@ -78,7 +77,10 @@ class Bill(BaseModel):
         return self.title
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.title)
+        if not self.slug:
+            self.slug = slugify(
+                self.title[:100] + '-' + self.registration_date
+                + '-' + str(self.rada_id))
         super().save(*args, **kwargs)
 
 
