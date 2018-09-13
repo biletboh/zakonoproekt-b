@@ -1,0 +1,34 @@
+[
+  {
+    "model": "initiators.convocation",
+    "pk": 1,
+    "fields": {
+      "number": 5,
+      "latin_number": "V скликання"
+    }
+  },
+  {
+    "model": "initiators.convocation",
+    "pk": 2,
+    "fields": {
+      "number": 6,
+      "latin_number": "VI скликання"
+    }
+  },
+  {
+    "model": "initiators.convocation",
+    "pk": 3,
+    "fields": {
+      "number": 7,
+      "latin_number": "VII скликання"
+    }
+  },
+  {
+    "model": "initiators.convocation",
+    "pk": 4,
+    "fields": {
+      "number": 8,
+      "latin_number": "VIII скликання"
+    }
+  }
+]

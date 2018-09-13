@@ -7,25 +7,27 @@ from initiators.models import Initiator
 class BillManager(models.Manager):
     """Bill model manager."""
 
-    def create(self, title, rada_id, number, convocation, session, rubric,
+    def create(self, title, bill_id, number, convocation, session, rubric,
                subject, bill_type, phase, phase_date, uri='',
                registration_date=None, agenda_uri='', agenda_number=None,
-               agenda_last_date=None, committee_date_passed=None,
-               chronology=[], documents=[], committees=[], authors=[],
+               agenda_last_date=None, agenda=None, chronology=[],
+               documents=[], committees=[], authors=[],
                initiators=[], executives=[], main_executives=[],
-               **kwargs):
+               alternatives=[], bind_bills=[], **kwargs):
         """Save related models on create."""
 
         from bills.models import Bill
 
-        bill = Bill(title=title, rada_id=rada_id, number=number,
+        bill = Bill(title=title, bill_id=bill_id, number=number,
                     convocation=convocation, session=session, rubric=rubric,
                     subject=subject, bill_type=bill_type, phase=phase,
                     phase_date=phase_date, uri=uri,
                     registration_date=registration_date,
                     agenda_number=agenda_number,
-                    committee_date_passed=committee_date_passed)
+                    agenda_uri=agenda_uri,
+                    agenda_last_date=agenda_last_date)
         bill.save()
+        bill = self.add_agenda(bill, agenda)
         bill = self.add_authors(bill, authors)
         bill = self.add_initiators(bill, initiators)
         bill = self.add_executives(bill, executives)
@@ -33,17 +35,29 @@ class BillManager(models.Manager):
         bill = self.add_chronology(bill, chronology)
         bill = self.add_documents(bill, documents)
         bill = self.add_committees(bill, committees)
+        bill = self.add_bill_alternatives(bill, alternatives)
+        bill = self.add_bind_bills(bill, bind_bills)
+        return bill
+
+    def add_agenda(self, bill, agenda):
+        """Add agenda to a bill object."""
+
+        if agenda:
+            bill.agenda_uri = agenda['uri'],
+            bill.agenda_number = agenda['number'],
+            bill.agenda_last_date = agenda['date']
+            bill.save()
         return bill
 
     def add_authors(self, bill, authors):
-        """Add authors to bill object."""
+        """Add authors to a bill object."""
 
         if authors:
             for author in authors:
-                rada_id = author['rada_id']
+                person_id = author['person_id']
 
                 try:
-                    author = Initiator.objects.get(rada_id=rada_id)
+                    author = Initiator.objects.get(person_id=person_id)
                 except Initiator.DoesNotExist:
                     author = Initiator.objects.create(**author)
 
@@ -52,14 +66,14 @@ class BillManager(models.Manager):
         return bill
 
     def add_initiators(self, bill, initiators):
-        """Add initiators to bill object."""
+        """Add initiators to a bill object."""
 
         if initiators:
             for initiator in initiators:
-                rada_id = initiator['rada_id']
+                person_id = initiator['person_id']
 
                 try:
-                    initiator = Initiator.objects.get(rada_id=rada_id)
+                    initiator = Initiator.objects.get(person_id=person_id)
                 except Initiator.DoesNotExist:
                     initiator = Initiator.objects.create(**initiator)
 
@@ -69,14 +83,14 @@ class BillManager(models.Manager):
         return bill
 
     def add_executives(self, bill, executives):
-        """Add executives to bill object."""
+        """Add executives to a bill object."""
 
         if executives:
             for executive in executives:
-                rada_id = executive['rada_id']
+                person_id = executive['person_id']
 
                 try:
-                    executive = Initiator.objects.get(rada_id=rada_id)
+                    executive = Initiator.objects.get(person_id=person_id)
                 except Initiator.DoesNotExist:
                     executive = Initiator.objects.create(**executive)
 
@@ -86,14 +100,14 @@ class BillManager(models.Manager):
         return bill
 
     def add_main_executives(self, bill, main_executives):
-        """Add main executives to bill object."""
+        """Add main executives to a bill object."""
 
         if main_executives:
             for executive in main_executives:
-                rada_id = executive['rada_id']
+                person_id = executive['person_id']
 
                 try:
-                    executive = Initiator.objects.get(rada_id=rada_id)
+                    executive = Initiator.objects.get(person_id=person_id)
                 except Initiator.DoesNotExist:
                     executive = Initiator.objects.create(**executive)
 
@@ -103,7 +117,7 @@ class BillManager(models.Manager):
         return bill
 
     def add_chronology(self, bill, chronology):
-        """Add chronology to bill object."""
+        """Add chronology to a bill object."""
 
         from bills.models import Passing
 
@@ -115,7 +129,7 @@ class BillManager(models.Manager):
         return bill
 
     def add_documents(self, bill, documents):
-        """Add documents to bill object."""
+        """Add documents to a bill object."""
 
         from bills.models import Document
 
@@ -126,7 +140,7 @@ class BillManager(models.Manager):
         return bill
 
     def add_committees(self, bill, committees):
-        """Add committees to bill object."""
+        """Add committees to a bill object."""
 
         from bills.models import WorkOuts
 
@@ -141,6 +155,35 @@ class BillManager(models.Manager):
 
                 workout_data['committee'] = committee
                 workout_data['bill'] = bill
-                WorkOuts.objects.create(**workout_data)
 
+                # check if an object exists to avoid dublicates
+                if not WorkOuts.objects.filter(**workout_data).exists():
+                    WorkOuts.objects.create(**workout_data)
+
+        return bill
+
+    def add_bill_alternatives(self, bill, bill_ids):
+        """Add related alternatives to a bill object."""
+
+        from bills.models import Bill
+
+        if bill_ids:
+            for bill_id in bill_ids:
+                if Bill.objects.filter(**bill_id).exists():
+                    related_bill = Bill.objects.get(**bill_id)
+                    bill.alternatives.add(related_bill)
+                    bill.save()
+        return bill
+
+    def add_bind_bills(self, bill, bill_ids):
+        """Add related bind bills to a bill object."""
+
+        from bills.models import Bill
+
+        if bill_ids:
+            for bill_id in bill_ids:
+                if Bill.objects.filter(**bill_id).exists():
+                    related_bill = Bill.objects.get(**bill_id)
+                    bill.bind_bills.add(related_bill)
+                    bill.save()
         return bill

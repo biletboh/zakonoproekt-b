@@ -1,11 +1,6 @@
-from unittest.mock import MagicMock
-
 from django.test import TestCase
-from django.core.files import File
 
 from bills.models import Bill, Passing, Document, AgendaQuestion, WorkOuts
-from committees.models import Committee
-from committees.tests.test_models import CommitteeDataMixin
 from initiators.tests.test_models import InitiatorDataMixin
 
 
@@ -19,14 +14,13 @@ class BillDataMixin(InitiatorDataMixin):
                       + 'Соціалістичних Республік і Урядом Республіки Кіпр '
                       + 'про уникнення подвійного оподаткування доходів та '
                       + 'майна від 29 жовтня 1982 року'),
-            'rada_id': 52575,
+            'bill_id': 52575,
             'number': '0001',
-            'convocation': 8,
+            'convocation': 'VIII скликання',
             'session': '1 сесія',
             'rubric': 'Двосторонні міжнародні угоди',
             'subject': 'Народний депутат України',
             'registration_date': '2014-12-01',
-            'committee_date_passed': '2014-12-01',
             'bill_type': 'Проект Закону',
             'phase_date': '2016-02-18',
             'phase': 'Відхилено та знято з розгляду',
@@ -95,16 +89,13 @@ class WorkOutsDataMixin:
         }
 
 
-class BillModelTestCase(BillDataMixin, InitiatorDataMixin, TestCase):
+class BillModelTestCase(BillDataMixin, TestCase):
     """Test the Bill model."""
 
     def setUp(self):
         BillDataMixin.setUp(self)
-        InitiatorDataMixin.setUp(self)
         DocumentDataMixin.setUp(self)
-        CommitteeDataMixin.setUp(self)
         WorkOutsDataMixin.setUp(self)
-        Committee.objects.create(**self.committee_data)
         self.bill_data['authors'] = [self.initiator_data]
         self.bill_data['initiators'] = [self.initiator_data]
         self.bill_data['executives'] = [self.initiator_data]
@@ -135,9 +126,7 @@ class BillModelManagerTestCase(PassingDataMixin, DocumentDataMixin,
         PassingDataMixin.setUp(self)
         DocumentDataMixin.setUp(self)
         WorkOutsDataMixin.setUp(self)
-        CommitteeDataMixin.setUp(self)
         BillDataMixin.setUp(self)
-        Committee.objects.create(**self.committee_data)
         self.bill_data['authors'] = [self.initiator_data]
         self.bill_data['initiators'] = [self.initiator_data]
         self.bill_data['executives'] = [self.initiator_data]
@@ -261,12 +250,10 @@ class WorkOutsModelTestCase(BillDataMixin, TestCase):
 
     def setUp(self):
         BillDataMixin.setUp(self)
-        CommitteeDataMixin.setUp(self)
         WorkOutsDataMixin.setUp(self)
         bill = Bill.objects.create(**self.bill_data)
-        committee = Committee.objects.create(**self.committee_data)
         self.workouts_data['bill'] = bill
-        self.workouts_data['committee'] = committee
+        self.workouts_data['committee'] = self.committee
 
     def test_can_create(self):
         """Test if the model can create a object."""

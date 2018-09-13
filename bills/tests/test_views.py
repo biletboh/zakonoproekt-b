@@ -9,9 +9,6 @@ from bills.models import Bill
 from bills.serializers import BillSerializer
 from bills.tests.test_models import BillDataMixin, DocumentDataMixin,\
     WorkOutsDataMixin, PassingDataMixin
-from committees.models import Committee
-from committees.tests.test_models import CommitteeDataMixin
-from initiators.tests.test_models import InitiatorDataMixin
 
 
 class BillCRUDTestCase(BillDataMixin, APITestCase):
@@ -20,14 +17,11 @@ class BillCRUDTestCase(BillDataMixin, APITestCase):
     def setUp(self):
         BillDataMixin.setUp(self)
         PassingDataMixin.setUp(self)
-        InitiatorDataMixin.setUp(self)
         DocumentDataMixin.setUp(self)
-        CommitteeDataMixin.setUp(self)
         WorkOutsDataMixin.setUp(self)
 
         self.rf = RequestFactory()
 
-        Committee.objects.create(**self.committee_data)
         self.user = User.objects.create_user('test', 'test@zakonoproekt.com',
                                              'testpass10')
 

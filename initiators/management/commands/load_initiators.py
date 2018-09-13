@@ -10,7 +10,7 @@ from core.mixins import FileDownloadCommandMixin
 
 class Command(FileDownloadCommandMixin, BaseCommand):
 
-    help = 'Load committees from Rada departments xls'
+    help = 'Load initiators from Rada data'
 
     def handle(self, *args, **options):
         url = 'http://data.rada.gov.ua/ogd/mps/skl8/mps08-data.json'
@@ -22,10 +22,10 @@ class Command(FileDownloadCommandMixin, BaseCommand):
                 if e['second_name']:
                     middle_name = e['second_name']
                 i = Initiator.objects.create(
+                        convocation_by_number=e['convocation'],
                         first_name=e['first_name'],
                         last_name=e['last_name'],
                         middle_name=middle_name,
-                        convocation=e['convocation'],
                         party=e['party_name'],
                         information=e['anketa_data'],
                         rada_id=e['rada_id'])

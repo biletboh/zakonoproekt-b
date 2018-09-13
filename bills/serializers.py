@@ -52,20 +52,20 @@ class BillSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Bill
-        fields = ('id', 'title', 'rada_id', 'uri', 'number', 'convocation',
+        fields = ('id', 'title', 'bill_id', 'uri', 'number', 'convocation',
                   'session', 'rubric', 'subject', 'bill_type', 'phase',
                   'phase_date', 'registration_date', 'agenda_number',
-                  'agenda_last_date', 'agenda_uri', 'committee_date_passed',
-                  'bind_bills', 'alternatives', 'authors', 'initiators',
-                  'executives', 'main_executives', 'chronology', 'documents',
-                  'committees', 'url')
+                  'agenda_last_date', 'agenda_uri', 'bind_bills',
+                  'alternatives', 'authors', 'initiators', 'executives',
+                  'main_executives', 'chronology', 'documents', 'committees',
+                  'url')
         extra_kwargs = {
             'url': {'view_name': 'bills-detail'}
             }
 
     def create(self, validated_data):
         bill = Bill.objects.create(
-            title=validated_data['title'], rada_id=validated_data['rada_id'],
+            title=validated_data['title'], bill_id=validated_data['bill_id'],
             number=validated_data['number'],
             convocation=validated_data['convocation'],
             session=validated_data['session'], rubric=validated_data['rubric'],
@@ -78,7 +78,6 @@ class BillSerializer(serializers.ModelSerializer):
             agenda_uri=validated_data['agenda_uri'],
             agenda_number=validated_data['agenda_number'],
             agenda_last_date=validated_data['agenda_last_date'],
-            committee_date_passed=validated_data['committee_date_passed'],
             chronology=validated_data.get('chronology', []),
             authors=validated_data.get('authors', []),
             initiators=validated_data.get('initiators', []),

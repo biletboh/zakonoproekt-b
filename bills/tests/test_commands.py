@@ -2,14 +2,15 @@ import json
 import os
 from unittest.mock import patch
 
-from django.test import TestCase
-from django.core import management
 from django.conf import settings
+from django.core import management
+from django.test import TestCase
 
 from bills.models import Bill
+from initiators.tests.test_models import ConvocationFixturesMixin
 
 
-class LoadDataCommandTestCase(TestCase):
+class LoadDataCommandTestCase(ConvocationFixturesMixin, TestCase):
     """Test the Initiator Commands."""
 
     def setUp(self):

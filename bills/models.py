@@ -15,7 +15,7 @@ class Passing(BaseModel):
 
     title = models.CharField('Заголовок', max_length=200)
     date = models.DateField('Дата')
-    slug = models.SlugField('Посилання', unique=True, max_length=512,
+    slug = models.SlugField('Посилання', unique=True, max_length=90,
                             null=True)
 
     class Meta:
@@ -29,8 +29,8 @@ class Bill(BaseModel):
     """Store information about a bill."""
 
     title = models.CharField('Заголовок', max_length=512)
-    rada_id = models.PositiveIntegerField('ID у ВР')
-    uri = models.URLField('Посилання', null=True, blank=True)
+    bill_id = models.PositiveIntegerField('ID у ВР')
+    uri = models.URLField('Посилання', blank=True)
     number = models.CharField('Реєстраційний номер', max_length=25)
     convocation = models.CharField('Скликання', max_length=25)
     session = models.CharField('Сесія', max_length=100)
@@ -46,8 +46,6 @@ class Bill(BaseModel):
                                         null=True, blank=True)
     agenda_uri = models.URLField('Посилання на порядок денний',
                                  null=True, blank=True)
-    committee_date_passed = models.DateField('Дата направлення на комітети',
-                                             null=True, blank=True)
 
     bind_bills = models.ManyToManyField('self', symmetrical=True, blank=True)
     alternatives = models.ManyToManyField('self', symmetrical=True, blank=True)
@@ -79,8 +77,7 @@ class Bill(BaseModel):
     def save(self, *args, **kwargs):
         if not self.slug:
             self.slug = slugify(
-                self.title[:100] + '-' + self.registration_date
-                + '-' + str(self.rada_id))
+                self.title[:100] + '-' + str(self.bill_id))
         super().save(*args, **kwargs)
 
 
@@ -91,20 +88,18 @@ def bill_directory_path(instance, filename):
 class Document(BaseModel):
     """Store data about documents related to bills."""
 
-    document_type = models.CharField('Тип', max_length=50)
-    date = models.DateField('Дата')
+    document_type = models.CharField('Тип', max_length=512)
+    date = models.DateField('Дата', null=True)
     uri = models.URLField('Посилання на порядок дений', null=True, blank=True)
     document_file = models.FileField(upload_to=bill_directory_path, null=True,
                                      blank=True)
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE,
                              related_name='documents')
+    slug = models.SlugField('Посилання', unique=True, max_length=90,
+                            null=True)
 
     def __str__(self):
         return f'{self.document_type} {self.bill.title}'
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(f'{self.document_type} {self.bill.title}')
-        super().save(*args, **kwargs)
 
 
 class AgendaQuestion(BaseModel):
@@ -143,10 +138,8 @@ class WorkOuts(BaseModel):
     date_got = models.DateField('Дата', null=True)
     bill = models.ForeignKey(Bill, on_delete=models.CASCADE)
     committee = models.ForeignKey(Committee, on_delete=models.CASCADE)
+    slug = models.SlugField('Посилання', unique=True, max_length=90,
+                            null=True)
 
     def __str__(self):
         return f'{self.title} {self.bill.title}'
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.title)
-        super().save(*args, **kwargs)
